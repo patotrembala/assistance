@@ -1,10 +1,10 @@
-# Ethan IA
+# Pajezinho IA
 
-O módulo Ethan IA oferece apoio aos técnicos em três atividades:
+O módulo Pajezinho IA oferece apoio aos técnicos em três atividades:
 
 1. análise de chamados, com categoria, prioridade, possível causa, diagnóstico sugerido e próximos passos;
 2. criação de relatório técnico de encerramento a partir do problema e dos procedimentos informados;
-3. chat **Pergunte ao Ethan** para dúvidas de suporte.
+3. chat **Pergunte ao Pajezinho** para dúvidas de suporte.
 
 ## Opção 1 — uso por chave de API
 
@@ -32,7 +32,7 @@ node scripts\chatgpt_oauth_node.mjs
 3. O conector criará `config/chatgpt.oauth.local.json` fora do Git. O identificador de registro auxiliar também permanece privado.
 4. Em hospedagem remota, transfira esse arquivo por um canal privado para a pasta `config` e nunca o publique no repositório. Na conta atual da InfinityFree, o destino correto é `/assistance.infinityfreeapp.com/htdocs/config` (não a pasta `/htdocs` genérica).
 
-O sistema renova o acesso automaticamente enquanto a autorização permanecer válida. Administradores e técnicos autenticados podem acessar o Ethan IA. O arquivo de autorização permanece somente no servidor e contém credenciais sensíveis: não deve ser aberto em capturas de tela, enviado em conversas nem copiado para computadores de terceiros.
+O sistema renova o acesso automaticamente enquanto a autorização permanecer válida. Administradores e técnicos autenticados podem acessar o Pajezinho IA. O arquivo de autorização permanece somente no servidor e contém credenciais sensíveis: não deve ser aberto em capturas de tela, enviado em conversas nem copiado para computadores de terceiros.
 
 O fluxo segue os requisitos oficiais: callback local em `127.0.0.1`, PKCE, validação de `state`, `nonce` e assinatura do ID Token, escopo `chatgpt.tokens.use.direct`, entrada em lista, omissão dos campos não aceitos na prévia, requisições com `store: false` e `stream: true` e rotação do token de renovação.
 
@@ -41,7 +41,7 @@ O fluxo segue os requisitos oficiais: callback local em `127.0.0.1`, PKCE, valid
 - A chave nunca é enviada ao navegador.
 - As requisições usam `store: false`.
 - No modo ChatGPT, as respostas são consumidas por streaming e os tokens são renovados fora do navegador.
-- Administradores e técnicos autenticados podem usar o Ethan IA, sem acesso às credenciais da conta conectada.
+- Administradores e técnicos autenticados podem usar o Pajezinho IA, sem acesso às credenciais da conta conectada.
 - Cada sessão pode realizar até 12 solicitações em dez minutos.
 - O chat mantém somente as seis últimas interações na sessão e pode ser limpo pelo usuário.
 - Chaves que comecem com `sk-` e tokens `Bearer` são removidos do texto antes do envio.

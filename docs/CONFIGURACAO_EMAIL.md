@@ -4,7 +4,7 @@ O Assistance utiliza uma conta de e-mail exclusiva para enviar códigos de auten
 
 ## Conta oficial
 
-- E-mail: `ethanassistant1@gmail.com`
+- E-mail: `seu-email@example.com`
 - Remetente exibido: `Assistance`
 - Situação: a aplicação está preparada; falta cadastrar no servidor uma senha de aplicativo gerada nessa conta.
 - O e-mail pessoal não deve ser usado em novas instalações.
@@ -32,9 +32,9 @@ return [
     'host' => 'smtp.gmail.com',
     'port' => 587,
     'encryption' => 'tls',
-    'username' => 'ethanassistant1@gmail.com',
+    'username' => 'seu-email@example.com',
     'password' => 'COLE_A_SENHA_DE_APLICATIVO_DIRETAMENTE_NO_SERVIDOR',
-    'from_email' => 'ethanassistant1@gmail.com',
+    'from_email' => 'seu-email@example.com',
     'from_name' => 'Assistance'
 ];
 ```

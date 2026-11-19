@@ -20,6 +20,26 @@ Sistema web em PHP e MySQL para organizar o fluxo de trabalho de técnicos de in
 - Documentação do projeto em DOCX e PDF na pasta `docs`.
 - Avaliação técnica e plano de adequação à LGPD em [`docs/ADEQUACAO_LGPD.md`](docs/ADEQUACAO_LGPD.md).
 
+## Manuais de uso
+
+- [Manual do administrador em PDF](docs/Manual_Administrador_Assistance.pdf).
+- [Manual do usuário técnico em PDF](docs/Manual_Usuario_Tecnico_Assistance.pdf).
+- [Manual completo em PDF](docs/Manual_do_Usuario_Assistance.pdf).
+- Versões editáveis em texto: [Administrador](docs/MANUAL_ADMINISTRADOR.md) e [Técnico](docs/MANUAL_TECNICO.md).
+
+Os guias cobrem acesso, painel, cadastros, ordens de serviço, chamados, pendências, recuperação de senha e uso do Pajezinho. A voz personalizada foi removida; a leitura comum depende do navegador.
+
+## Verificação do código
+
+Os testes abaixo usam transporte simulado de IA e regras isoladas de autorização, sem consumir serviços externos ou dados de produção:
+
+```powershell
+C:\xampp\php\php.exe -d zend.assertions=1 -d assert.exception=1 tests/smoke_ethan_ai.php
+C:\xampp\php\php.exe tests/smoke_operational_access.php
+```
+
+Os demais testes dependem de banco de desenvolvimento. Não os execute no banco de produção.
+
 ## Requisitos
 
 - Git.

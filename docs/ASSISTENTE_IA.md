@@ -59,5 +59,5 @@ Enquanto os chamados utilizarem dados simulados, a análise recebe a descrição
 O teste usa um transporte simulado e não consome créditos de API:
 
 ```powershell
-C:\xampp\php\php.exe -d zend.assertions=1 -d assert.exception=1 tests\smoke_ethan_ai.php
+C:\xampp\php\php.exe -d zend.assertions=1 -d assert.exception=1 tests\smoke_assistance_ai.php
 ```

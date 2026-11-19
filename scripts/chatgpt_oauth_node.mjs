@@ -22,7 +22,7 @@ const server = createServer(async (request, response) => {
     const url = new URL(request.url ?? '/', 'http://127.0.0.1:1455');
     if (url.pathname === '/start') return await start(response);
     if (url.pathname === '/auth/callback') return await finish(url, response);
-    return page(response, 200, 'Conectar o Ethan ao ChatGPT', 'Autorize sua conta pelo fluxo oficial da OpenAI.', '<a class="button" href="/start">Continuar com ChatGPT</a>');
+    return page(response, 200, 'Conectar o Assistente de IA ao ChatGPT', 'Autorize sua conta pelo fluxo oficial da OpenAI.', '<a class="button" href="/start">Continuar com ChatGPT</a>');
   } catch (error) {
     const status = Number.isInteger(error?.status) ? error.status : 400;
     const code = typeof error?.code === 'string' ? ` (${escapeHtml(error.code)})` : '';
@@ -31,7 +31,7 @@ const server = createServer(async (request, response) => {
 });
 
 server.listen(1455, '127.0.0.1', () => {
-  process.stdout.write('Conector do Ethan pronto em http://127.0.0.1:1455/start\n');
+  process.stdout.write('Conector do Assistente de IA pronto em http://127.0.0.1:1455/start\n');
 });
 
 async function start(response) {
@@ -123,7 +123,7 @@ async function finish(url, response) {
     saved_at: new Date().toISOString(),
   });
   transaction = undefined;
-  return page(response, 200, 'Ethan conectado ao ChatGPT', `A autorização foi validada e guardada fora do Git. Modelo selecionado: ${escapeHtml(model)}.${catalogNotice}`, '<strong>Você já pode fechar esta aba.</strong>');
+  return page(response, 200, 'Assistente de IA conectado ao ChatGPT', `A autorização foi validada e guardada fora do Git. Modelo selecionado: ${escapeHtml(model)}.${catalogNotice}`, '<strong>Você já pode fechar esta aba.</strong>');
 }
 
 async function validateIdToken(jwt, clientId, nonce) {

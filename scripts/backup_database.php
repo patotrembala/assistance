@@ -8,9 +8,9 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require_once __DIR__ . '/../config/database.php';
-$keyMaterial = getenv('ETHAN_BACKUP_KEY') ?: '';
+$keyMaterial = getenv('ASSISTANCE_BACKUP_KEY') ?: '';
 if (strlen($keyMaterial) < 20) {
-    fwrite(STDERR, "Defina ETHAN_BACKUP_KEY com uma frase secreta forte.\n");
+    fwrite(STDERR, "Defina ASSISTANCE_BACKUP_KEY com uma frase secreta forte.\n");
     exit(1);
 }
 
@@ -31,12 +31,12 @@ if ($ciphertext === false) {
     throw new RuntimeException('Falha ao criptografar o backup.');
 }
 
-$backupDir = dirname(__DIR__, 2) . '/ethan-assistant-private/backups';
+$backupDir = dirname(__DIR__, 2) . '/assistance-private/backups';
 if (!is_dir($backupDir) && !mkdir($backupDir, 0700, true) && !is_dir($backupDir)) {
     throw new RuntimeException('Não foi possível criar a pasta privada de backups.');
 }
-$payload = "ETHANBACKUP1" . $salt . $iv . $tag . $ciphertext;
-$file = $backupDir . '/ethan-' . date('Ymd-His') . '.backup';
+$payload = "ASSISTANCEBACKUP1" . $salt . $iv . $tag . $ciphertext;
+$file = $backupDir . '/assistance-' . date('Ymd-His') . '.backup';
 file_put_contents($file, $payload, LOCK_EX);
 chmod($file, 0600);
 echo "Backup criptografado criado em {$file}\n";

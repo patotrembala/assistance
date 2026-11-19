@@ -34,7 +34,7 @@ Os guias cobrem acesso, painel, cadastros, ordens de serviço, chamados, pendên
 Os testes abaixo usam transporte simulado de IA e regras isoladas de autorização, sem consumir serviços externos ou dados de produção:
 
 ```powershell
-C:\xampp\php\php.exe -d zend.assertions=1 -d assert.exception=1 tests/smoke_ethan_ai.php
+C:\xampp\php\php.exe -d zend.assertions=1 -d assert.exception=1 tests/smoke_assistance_ai.php
 C:\xampp\php\php.exe tests/smoke_operational_access.php
 ```
 
@@ -51,7 +51,7 @@ Os demais testes dependem de banco de desenvolvimento. Não os execute no banco 
 Abra o PowerShell e execute:
 
 ```powershell
-git clone -b ethanassistant https://github.com/patotrembala/assistance.git
+git clone -b <branch-do-projeto> https://github.com/patotrembala/assistance.git
 cd assistance
 Copy-Item config/database.example.php config/database.local.php
 Copy-Item config/auth.example.php config/auth.local.php
@@ -68,7 +68,7 @@ Os arquivos terminados em `.local.php` são privados e não são enviados ao Git
 - `config/security.local.php`: chave aleatória privada usada para pseudonimizar origens nos registros de segurança.
 - `config/ai.local.php`: chave e modelo usados pelo Pajezinho IA; mantenha a chave apenas no ambiente configurado.
 
-Como alternativa à cobrança separada da API, a demonstração escolar aceita a autorização oficial da conta ChatGPT do administrador. Veja o procedimento e as limitações em [`docs/ETHAN_IA.md`](docs/ETHAN_IA.md). As credenciais ficam em `config/chatgpt.oauth.local.json`, nunca no Git ou no navegador. Administradores e técnicos autenticados podem usar o Pajezinho IA, sujeitos ao limite de uso configurado pelo sistema.
+Como alternativa à cobrança separada da API, a demonstração escolar aceita a autorização oficial da conta ChatGPT do administrador. Veja o procedimento e as limitações em [`docs/ASSISTENTE_IA.md`](docs/ASSISTENTE_IA.md). As credenciais ficam em `config/chatgpt.oauth.local.json`, nunca no Git ou no navegador. Administradores e técnicos autenticados podem usar o Assistente de IA, sujeitos ao limite de uso configurado pelo sistema.
 
 Na hospedagem gratuita da InfinityFree, a função `mail()` não está disponível. Configure um SMTP externo. Para Gmail, ative a verificação em duas etapas e utilize uma senha de aplicativo; nunca coloque a senha normal da conta no arquivo.
 O remetente oficial do projeto é `Assistance <seu-email@example.com>`; a senha de aplicativo deve existir apenas no `config/mail.local.php` de cada ambiente.
@@ -80,7 +80,7 @@ O remetente oficial do projeto é `Assistance <seu-email@example.com>`; a senha 
 3. Entre na aba **Importar**.
 4. Selecione `database/schema.sql` e confirme a importação.
 
-O script cria o banco `ethan_assistant`, suas oito tabelas e o catálogo inicial de serviços.
+O script cria o banco configurado em `database/schema.sql`, suas tabelas e o catálogo inicial de serviços.
 
 Em bancos existentes, importe em ordem `database/migrations/20261001_password_reset_tokens.sql`, `database/migrations/20261008_password_reset_approval.sql` e `database/migrations/20261008_security_controls.sql`.
 
@@ -102,8 +102,8 @@ Depois abra:
 Antes de começar:
 
 ```powershell
-git switch ethanassistant
-git pull origin ethanassistant
+git switch <branch-do-projeto>
+git pull origin <branch-do-projeto>
 ```
 
 Ao terminar:
@@ -111,7 +111,7 @@ Ao terminar:
 ```powershell
 git add .
 git commit -m "Descreva a alteração"
-git push origin ethanassistant
+git push origin <branch-do-projeto>
 ```
 
 Não envie arquivos `config/*.local.php` nem arquivos de sessão. Eles já estão protegidos pelo `.gitignore`.

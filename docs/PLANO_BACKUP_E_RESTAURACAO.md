@@ -12,4 +12,4 @@
 
 Uma vez por mês, restaurar a cópia em ambiente isolado, validar contagem de tabelas, autenticação, clientes e ordens, registrar resultado e eliminar com segurança o ambiente de teste.
 
-O script `scripts/backup_database.php` gera cópia JSON criptografada com AES-256-GCM em uma pasta privada acima da raiz pública. Ele exige execução por linha de comando e a variável `ETHAN_BACKUP_KEY`.
+O script `scripts/backup_database.php` gera cópia JSON criptografada com AES-256-GCM em uma pasta privada acima da raiz pública. Ele exige execução por linha de comando e a variável `ASSISTANCE_BACKUP_KEY`.

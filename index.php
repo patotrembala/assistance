@@ -937,22 +937,6 @@ switch (true) {
         require __DIR__ . '/views/audit/index.php';
         break;
 
-    case $requestUri === '/solicitacoes-privacidade':
-        requireAdmin($isAdmin);
-        $privacyRequests = $privacyRequestService->all();
-        require __DIR__ . '/views/privacy/admin.php';
-        break;
-
-    case preg_match('#^/solicitacoes-privacidade/(\d+)/status$#', $requestUri, $m) && $_SERVER['REQUEST_METHOD'] === 'POST':
-        requireAdmin($isAdmin);
-        verifyCsrf();
-        $status = (string)($_POST['status'] ?? '');
-        if ($privacyRequestService->updateStatus((int)$m[1], $status, (int)$currentUser['id'])) {
-            $securityService->audit((int)$currentUser['id'], 'atualizar_status', 'privacy_request', (int)$m[1], ['status' => $status]);
-            redirectWithFlash('/solicitacoes-privacidade', 'success', 'Solicitação atualizada.');
-        }
-        redirectWithFlash('/solicitacoes-privacidade', 'danger', 'Não foi possível atualizar a solicitação.');
-
     case preg_match('#^/recuperacoes-senha/(\d+)/aprovar$#', $requestUri, $m) && $_SERVER['REQUEST_METHOD'] === 'POST':
         requireAdmin($isAdmin);
         verifyCsrf();

@@ -87,4 +87,4 @@ try {
 } finally {
     @unlink($oauthFile);
 }
-echo "Ethan IA: OK\n";
+echo "Pajezinho IA: OK\n";

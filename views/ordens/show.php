@@ -12,6 +12,7 @@ $isAdmin = ($currentUser['perfil'] ?? '') === 'admin';
 $isConcluida = in_array($ordem['status'] ?? '', ['Concluída', 'Cancelada']);
 $semTecnico = empty($ordem['tecnico_id']);
 $isAtrasada = !empty($ordem['prazo_violado']);
+$podeGerenciar = $isAdmin || (!$semTecnico && (int)$ordem['tecnico_id'] === (int)($currentUser['id'] ?? 0));
 
 require __DIR__ . '/../layouts/header.php';
 require __DIR__ . '/../layouts/sidebar.php';
@@ -49,28 +50,32 @@ require __DIR__ . '/../layouts/sidebar.php';
           🖨️ Imprimir OS
         </a>
 
-        <?php if ($semTecnico && !$isAdmin): ?>
+        <?php if ($semTecnico && !$isAdmin && !$isConcluida): ?>
           <form action="<?= $baseUrl ?>/ordens/<?= (int)$ordem['id'] ?>/assumir" method="POST" style="margin: 0;">
-            <input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken) ?>">
+<input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
             <button type="submit" class="btn btn-primary">
               Assumir esta OS
             </button>
           </form>
         <?php endif; ?>
 
-        <?php if ($isConcluida): ?>
-          <!-- Reabertura de OS (RF09 / RN05: permitido para admin e técnico) -->
+        <?php if ($isConcluida && $isAdmin): ?>
+          <!-- Reabertura restrita ao administrador, conforme regra do servidor. -->
           <form action="<?= $baseUrl ?>/ordens/<?= (int)$ordem['id'] ?>/reabrir" method="POST" style="margin: 0;">
-            <input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken) ?>">
+<input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
             <button type="submit" class="btn btn-secondary" onclick="return confirm('Deseja reabrir esta Ordem de Serviço?')">
               🔄 Reabrir OS
             </button>
           </form>
         <?php endif; ?>
 
+        <?php if ($podeGerenciar): ?>
         <a href="<?= $baseUrl ?>/ordens/<?= (int)$ordem['id'] ?>/editar" class="btn btn-secondary">
           Editar Dados
         </a>
+        <?php endif; ?>
+
+        <?php if ($isAdmin): ?>
 
         <button
           type="button"
@@ -83,9 +88,17 @@ require __DIR__ . '/../layouts/sidebar.php';
         >
           Excluir
         </button>
+        <?php endif; ?>
       </div>
     </div>
 
+    <?php if (!$isAdmin && $semTecnico && !$isConcluida): ?>
+      <section class="card" style="margin-bottom:var(--spacing-5);border-left:3px solid var(--color-primary);">
+        <div class="card-body"><strong>Pronta para assumir</strong><p>Confira o problema e o prazo. Ao assumir esta OS, você poderá registrar o diagnóstico e atualizar o atendimento.</p></div>
+      </section>
+    <?php elseif (!$isAdmin && $isConcluida): ?>
+      <section class="card" style="margin-bottom:var(--spacing-5);"><div class="card-body"><strong>Atendimento encerrado</strong><p>Se precisar reabrir esta OS, solicite ao administrador.</p></div></section>
+    <?php endif; ?>
     <div class="grid-2-1">
       <!-- Coluna Principal: Equipamento e Histórico de Ocorrência -->
       <div>
@@ -143,6 +156,7 @@ require __DIR__ . '/../layouts/sidebar.php';
 
       <!-- Coluna Lateral: Resumo, Cliente e Responsável -->
       <div>
+        <?php if ($podeGerenciar && (!$isConcluida || $isAdmin)): ?>
         <!-- Transição Rápida de Status (RF08) -->
         <div class="card">
           <div class="card-header">
@@ -150,7 +164,7 @@ require __DIR__ . '/../layouts/sidebar.php';
           </div>
           <div class="card-body">
             <form action="<?= $baseUrl ?>/ordens/<?= (int)$ordem['id'] ?>/atualizar-status" method="POST">
-              <input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken) ?>">
+<input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
               <div class="form-group">
                 <label for="novo_status" class="form-label">Atualizar Situação</label>
                 <select name="status" id="novo_status" class="form-select">
@@ -171,6 +185,7 @@ require __DIR__ . '/../layouts/sidebar.php';
           </div>
         </div>
 
+        <?php endif; ?>
         <!-- Dados do Cliente -->
         <div class="card">
           <div class="card-header">
@@ -192,11 +207,13 @@ require __DIR__ . '/../layouts/sidebar.php';
             <div style="font-size: var(--font-size-sm);">
               📍 <?= htmlspecialchars($ordem['cliente_endereco'] ?? '-') ?>
             </div>
+            <?php if ($isAdmin || !$semTecnico): ?>
             <div style="margin-top: var(--spacing-4);">
               <a href="<?= $baseUrl ?>/clientes/<?= (int)($ordem['cliente_id'] ?? 0) ?>" class="btn btn-outline btn-sm" style="width: 100%;">
                 Abrir Ficha do Cliente
               </a>
             </div>
+            <?php endif; ?>
           </div>
         </div>
 
@@ -246,4 +263,5 @@ require __DIR__ . '/../layouts/sidebar.php';
       </div>
     </div>
 
+<?php if (!empty($historicoAtendimento)): ?><section class="card" style="margin-top:24px"><div class="card-header"><h2 class="card-title">Histórico do atendimento</h2></div><div class="card-body"><ol class="operation-timeline"><?php foreach ($historicoAtendimento as $event): ?><?php $details=json_decode((string)($event['detalhes_json']??''),true)?:[]; ?><li><strong><?= htmlspecialchars($event['usuario_nome']??'Sistema') ?></strong> · <?= htmlspecialchars($event['acao']) ?> <small><?= htmlspecialchars(opDate($event['criado_em'])) ?></small><?php if (!empty($details['status'])): ?><p><?= htmlspecialchars(opDisplay($details['status'])) ?></p><?php endif; ?></li><?php endforeach; ?></ol></div></section><?php endif; ?>
 <?php require __DIR__ . '/../layouts/footer.php'; ?>

@@ -24,8 +24,8 @@ require __DIR__ . '/../layouts/sidebar.php';
 
     <div class="page-header">
       <div class="page-title-wrap">
-        <h1>Ordens de Serviço</h1>
-        <p class="page-subtitle">Acompanhamento e atendimento dos equipamentos de clientes</p>
+        <h1><?= $isAdmin ? 'Ordens de Serviço' : 'Minha fila de ordens' ?></h1>
+        <p class="page-subtitle"><?= $isAdmin ? 'Acompanhamento e atendimento dos equipamentos de clientes' : 'Acompanhe suas OS ou assuma um atendimento disponível.' ?></p>
       </div>
       <div class="page-actions">
         <a href="<?= $baseUrl ?>/ordens/nova" class="btn btn-primary">
@@ -34,8 +34,17 @@ require __DIR__ . '/../layouts/sidebar.php';
       </div>
     </div>
 
+    <?php if (!$isAdmin): ?>
+      <?php $filaAtual = in_array(($_GET['fila'] ?? ''), ['meus','disponiveis'], true) ? $_GET['fila'] : ''; ?>
+      <nav aria-label="Filas de ordens" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:var(--spacing-5);">
+        <?php foreach (['meus'=>'Minhas OS','disponiveis'=>'Disponíveis para assumir',''=>'Todas acessíveis'] as $filaKey=>$filaNome): ?>
+          <a class="btn <?= $filaAtual === $filaKey ? 'btn-primary' : 'btn-outline' ?>" href="<?= $baseUrl ?>/ordens<?= $filaKey !== '' ? '?fila='.urlencode($filaKey) : '' ?>" <?= $filaAtual === $filaKey ? 'aria-current="page"' : '' ?>><?= htmlspecialchars($filaNome) ?></a>
+        <?php endforeach; ?>
+      </nav>
+    <?php endif; ?>
     <!-- Barra de Filtros Corporativos -->
     <form method="GET" action="<?= $baseUrl ?>/ordens" class="filter-bar">
+      <?php if (!$isAdmin && !empty($filaAtual)): ?><input type="hidden" name="fila" value="<?= htmlspecialchars($filaAtual, ENT_QUOTES, 'UTF-8') ?>"><?php endif; ?>
       <div class="filter-group">
         <div class="search-input-wrap">
           <input
@@ -67,7 +76,8 @@ require __DIR__ . '/../layouts/sidebar.php';
           <option value="baixa" <?= (($_GET['prioridade'] ?? '') === 'baixa') ? 'selected' : '' ?>>Baixa</option>
         </select>
 
-        <?php if ($isAdmin): ?>
+        <select name="prazo" class="form-select" aria-label="Filtrar por prazo" onchange="this.form.submit()"><option value="">Todos os prazos</option><?php foreach (['atrasados'=>'Atrasados','hoje'=>'Vencem hoje','abertos'=>'Em aberto'] as $key=>$label): ?><option value="<?= $key ?>" <?= ($_GET['prazo']??'')===$key?'selected':'' ?>><?= $label ?></option><?php endforeach; ?></select>
+<?php if ($isAdmin): ?>
           <select name="tecnico_id" class="form-select" onchange="this.form.submit()" style="width: auto;">
             <option value="">Todos os Técnicos</option>
             <?php foreach (($tecnicos ?? []) as $tec): ?>
@@ -79,7 +89,7 @@ require __DIR__ . '/../layouts/sidebar.php';
         <?php endif; ?>
       </div>
 
-      <?php if (!empty($_GET['busca']) || !empty($_GET['status']) || !empty($_GET['prioridade']) || !empty($_GET['tecnico_id'])): ?>
+      <?php if (!empty($_GET['busca']) || !empty($_GET['status']) || !empty($_GET['prioridade']) || !empty($_GET['tecnico_id']) || !empty($_GET['prazo'])): ?>
         <a href="<?= $baseUrl ?>/ordens" class="btn btn-outline btn-sm">Limpar Filtros</a>
       <?php endif; ?>
     </form>
@@ -104,7 +114,7 @@ require __DIR__ . '/../layouts/sidebar.php';
             <tr class="empty-row">
               <td colspan="8" class="empty-state">
                 <div class="empty-state-title">Nenhuma ordem de serviço encontrada</div>
-                <p>Crie uma nova OS utilizando o botão acima.</p>
+                <p><?= $isAdmin ? 'Crie uma nova OS utilizando o botão acima.' : 'Consulte outra fila ou ajuste os filtros para encontrar um atendimento.' ?></p>
               </td>
             </tr>
           <?php else: ?>
@@ -112,6 +122,8 @@ require __DIR__ . '/../layouts/sidebar.php';
               <?php
                 $isAtrasada = !empty($os['prazo_violado']);
                 $semTecnico = empty($os['tecnico_id']);
+                $osEncerrada = in_array($os['status'] ?? '', ['Concluída','Cancelada','Concluida'], true);
+                $podeEditarOS = $isAdmin || (!$semTecnico && (int)$os['tecnico_id'] === (int)$currentUserId);
               ?>
               <tr>
                 <td>
@@ -128,10 +140,10 @@ require __DIR__ . '/../layouts/sidebar.php';
                 </td>
                 <td>
                   <?php if ($semTecnico): ?>
-                    <span style="color: var(--color-slate-400); font-style: italic;">Disponível</span>
-                    <?php if (!$isAdmin): ?>
+                    <span style="color: var(--color-slate-400); font-style: italic;"><?= $osEncerrada ? 'Sem responsável' : 'Disponível' ?></span>
+                    <?php if (!$isAdmin && !$osEncerrada): ?>
                       <form action="<?= $baseUrl ?>/ordens/<?= (int)$os['id'] ?>/assumir" method="POST" style="display: inline; margin-left: 4px;">
-                        <input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken) ?>">
+<input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                         <button type="submit" class="btn btn-outline btn-sm" title="Assumir esta OS para atendimento">
                           Assumir
                         </button>
@@ -160,12 +172,15 @@ require __DIR__ . '/../layouts/sidebar.php';
                     <a href="<?= $baseUrl ?>/ordens/<?= (int)$os['id'] ?>" class="btn btn-outline btn-sm" title="Ver detalhes">
                       Detalhes
                     </a>
+                    <?php if ($podeEditarOS): ?>
                     <a href="<?= $baseUrl ?>/ordens/<?= (int)$os['id'] ?>/editar" class="btn btn-secondary btn-sm" title="Editar">
                       Editar
                     </a>
+                    <?php endif; ?>
                     <a href="<?= $baseUrl ?>/ordens/<?= (int)$os['id'] ?>/imprimir" class="btn btn-outline btn-sm" title="Imprimir OS" target="_blank">
                       🖨️
                     </a>
+                    <?php if ($isAdmin): ?>
                     <button
                       type="button"
                       class="btn btn-outline btn-sm"
@@ -177,6 +192,7 @@ require __DIR__ . '/../layouts/sidebar.php';
                     >
                       ✕
                     </button>
+                    <?php endif; ?>
                   </div>
                 </td>
               </tr>

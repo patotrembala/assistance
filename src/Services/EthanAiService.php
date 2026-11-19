@@ -12,7 +12,7 @@ final class EthanAiService
     private const API_RESOURCE = 'https://api.openai.com/v1';
 
     private const BASE_INSTRUCTIONS = <<<'PROMPT'
-Você é o Ethan, assistente interno de uma equipe brasileira de suporte de TI.
+Você é o Pajezinho, assistente interno de uma equipe brasileira de suporte de TI.
 Responda em português do Brasil, com linguagem técnica clara, objetiva e profissional.
 Nunca afirme que um diagnóstico é definitivo sem testes. Diferencie evidência, hipótese e recomendação.
 Priorize segurança, preservação de dados, backup e procedimentos reversíveis.
@@ -131,7 +131,7 @@ PROMPT,
 
         $historyLines = [];
         foreach (array_slice($history, -6) as $message) {
-            $role = ($message['role'] ?? '') === 'assistant' ? 'Ethan' : 'Técnico';
+            $role = ($message['role'] ?? '') === 'assistant' ? 'Pajezinho' : 'Técnico';
             $content = $this->cleanInput((string)($message['content'] ?? ''), 1500);
             if ($content !== '') {
                 $historyLines[] = $role . ': ' . $content;
@@ -220,7 +220,7 @@ PROMPT,
         if ($status < 200 || $status >= 300) {
             error_log('Falha na API de IA. HTTP ' . $status . '.');
             $message = $status === 429
-                ? 'O Ethan está temporariamente sem créditos de IA. O administrador precisa conferir o faturamento da API.'
+                ? 'O Pajezinho está temporariamente sem créditos de IA. O administrador precisa conferir o faturamento da API.'
                 : 'O serviço de IA não conseguiu concluir a solicitação.';
             throw new EthanAiException($message);
         }

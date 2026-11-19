@@ -628,7 +628,7 @@
   gap: var(--spacing-3);
 }
 
-/* Ethan IA */
+/* Pajezinho IA */
 .ai-notice {
   margin-bottom: var(--spacing-5);
   padding: var(--spacing-3) var(--spacing-4);
@@ -820,7 +820,7 @@ textarea.ai-input-large {
   }
 }
 
-/* Ethan IA — central de chamados em formato de conversa */
+/* Pajezinho IA — central de chamados em formato de conversa */
 .sr-only {
   position: absolute;
   width: 1px;

@@ -17,7 +17,7 @@ require __DIR__ . '/../layouts/sidebar.php';
           <td><?= htmlspecialchars(date('d/m/Y H:i:s', strtotime($log['criado_em']))) ?></td>
           <td><?= htmlspecialchars($log['usuario_nome'] ?? 'Visitante/sistema') ?></td>
           <td><strong><?= htmlspecialchars($log['acao']) ?></strong></td>
-          <td><?= htmlspecialchars($log['entidade']) ?></td>
+          <td><?= htmlspecialchars($log['entidade'] === 'ethan_ai' ? 'Pajezinho IA' : $log['entidade']) ?></td>
           <td><?= $log['registro_id'] !== null ? '#' . (int)$log['registro_id'] : '—' ?></td>
         </tr><?php endforeach; ?>
       <?php endif; ?>

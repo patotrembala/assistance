@@ -4,8 +4,8 @@ return [
     'host' => 'smtp.gmail.com',
     'port' => 587,
     'encryption' => 'tls',
-    'username' => 'ethanassistant1@gmail.com',
+    'username' => 'seu-email@example.com',
     'password' => 'senha-de-aplicativo',
-    'from_email' => 'ethanassistant1@gmail.com',
+    'from_email' => 'seu-email@example.com',
     'from_name' => 'Assistance'
 ];

@@ -34,7 +34,7 @@ try {
     if ($path === '/auth/callback') {
         finishAuthorization($credentialFile, $transactionFile, $hostFile, $registrationFile);
     }
-    renderPage('Conectar o Ethan ao ChatGPT', 'Use o botão abaixo para autorizar sua conta. A autorização fica restrita ao administrador e não é salva no Git.', '<a class="button" href="/start">Continuar com ChatGPT</a>');
+    renderPage('Conectar o Pajezinho ao ChatGPT', 'Use o botão abaixo para autorizar sua conta. A autorização fica restrita ao administrador e não é salva no Git.', '<a class="button" href="/start">Continuar com ChatGPT</a>');
 } catch (Throwable $exception) {
     http_response_code(400);
     renderPage('Não foi possível conectar', htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8'), '<a class="button secondary" href="/start">Tentar novamente</a>');
@@ -146,7 +146,7 @@ function finishAuthorization(string $credentialFile, string $transactionFile, st
     $claims = validateIdToken((string)$token['id_token'], $issuedClientId, (string)$transaction['nonce']);
     $scopes = preg_split('/\s+/', trim((string)($token['scope'] ?? ''))) ?: [];
     if (!in_array('chatgpt.tokens.use.direct', $scopes, true)) {
-        throw new RuntimeException('A conta não autorizou o uso do plano ChatGPT pelo Ethan.');
+        throw new RuntimeException('A conta não autorizou o uso do plano ChatGPT pelo Pajezinho.');
     }
 
     $now = time();
@@ -196,7 +196,7 @@ function finishAuthorization(string $credentialFile, string $transactionFile, st
     }
     @unlink($transactionFile);
 
-    renderPage('Ethan conectado ao ChatGPT', 'A autorização foi validada e guardada fora do Git. Modelo selecionado: ' . htmlspecialchars((string)$credentials['model'], ENT_QUOTES, 'UTF-8') . '.' . $catalogNotice, '<strong>Você já pode fechar esta aba.</strong>');
+    renderPage('Pajezinho conectado ao ChatGPT', 'A autorização foi validada e guardada fora do Git. Modelo selecionado: ' . htmlspecialchars((string)$credentials['model'], ENT_QUOTES, 'UTF-8') . '.' . $catalogNotice, '<strong>Você já pode fechar esta aba.</strong>');
 }
 
 function validateIdToken(string $jwt, string $clientId, string $nonce): array

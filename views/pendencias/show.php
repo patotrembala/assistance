@@ -17,13 +17,14 @@ require __DIR__ . '/../layouts/sidebar.php';
 <main class="app-main">
   <?php require __DIR__ . '/../layouts/topbar.php'; ?>
 
-  <div class="app-content">
+  <div class="app-content pending-detail-view">
     <?php require __DIR__ . '/../layouts/flash.php'; ?>
 
-    <div class="page-header">
+    <div class="page-header record-detail-header">
       <div class="page-title-wrap">
-        <div style="display: flex; align-items: center; gap: var(--spacing-3);">
-          <h1>Pendência #<?= (int)($pendencia['id'] ?? 0) ?></h1>
+        <span class="record-eyebrow">Pendência interna · #<?= (int)($pendencia['id'] ?? 0) ?></span>
+        <div class="record-heading-row">
+          <h1><?= htmlspecialchars($pendencia['titulo'] ?? 'Pendência sem título') ?></h1>
           <?= renderStatusBadge($pendencia['status'] ?? 'Pendente') ?>
           <?php if (!empty($pendencia['prioridade'])): ?>
             <span class="badge badge-prioridade-<?= strtolower($pendencia['prioridade']) ?>">
@@ -34,105 +35,164 @@ require __DIR__ . '/../layouts/sidebar.php';
             <span class="badge-prazo-violado">Prazo violado</span>
           <?php endif; ?>
         </div>
-        <p class="page-subtitle">Atividade interna da equipe técnica</p>
+        <p class="page-subtitle">Acompanhe o responsável, o prazo e todas as alterações desta atividade.</p>
       </div>
 
       <div class="page-actions">
         <a href="<?= $baseUrl ?>/pendencias" class="btn btn-outline">
-          ← Voltar para listagem
+          <span aria-hidden="true">←</span> Voltar
         </a>
 
         <?php if (!$isConcluida): ?>
           <form action="<?= $baseUrl ?>/pendencias/<?= (int)$pendencia['id'] ?>/concluir" method="POST" style="margin: 0;">
             <input type="hidden" name="_token" value="<?= htmlspecialchars($csrfToken) ?>">
             <button type="submit" class="btn btn-primary">
-              ✓ Marcar como Concluída
+              <span aria-hidden="true">✓</span> Concluir tarefa
             </button>
           </form>
         <?php endif; ?>
 
         <a href="<?= $baseUrl ?>/pendencias/<?= (int)$pendencia['id'] ?>/editar" class="btn btn-secondary">
-          Editar
+          <span aria-hidden="true">✎</span> Editar
         </a>
 
         <button
           type="button"
-          class="btn btn-outline"
-          style="color: var(--color-danger);"
+          class="btn btn-outline record-delete-button"
           data-modal-target="modalExclusao"
           data-record-id="<?= (int)$pendencia['id'] ?>"
           data-record-name="Pendência: <?= htmlspecialchars($pendencia['titulo'] ?? '') ?>"
           onclick="document.getElementById('formConfirmarExclusao').action='<?= $baseUrl ?>/pendencias/<?= (int)$pendencia['id'] ?>/excluir'"
         >
-          Excluir
+          <span aria-hidden="true">⌫</span> Excluir
         </button>
       </div>
     </div>
 
-    <div class="grid-2-1">
-      <!-- Coluna Principal: Detalhes e Descrição -->
-      <div>
-        <div class="card">
+    <div class="record-main-grid">
+      <section class="card record-card task-description-card">
           <div class="card-header">
-            <h2 class="card-title"><?= htmlspecialchars($pendencia['titulo'] ?? '') ?></h2>
-          </div>
-          <div class="card-body">
-            <div class="form-group">
-              <label class="form-label" style="color: var(--color-slate-500); font-size: var(--font-size-xs);">Descrição da Tarefa</label>
-              <div style="font-size: var(--font-size-base); color: var(--color-slate-800); white-space: pre-line; line-height: 1.6;">
-                <?= !empty($pendencia['descricao']) ? htmlspecialchars($pendencia['descricao']) : '<em>Sem descrição detalhada registrada.</em>' ?>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Coluna Lateral: Responsável e Prazos -->
-      <div>
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Informações de Execução</h3>
-          </div>
-          <div class="card-body">
-            <div style="margin-bottom: var(--spacing-4);">
-              <span class="form-label" style="color: var(--color-slate-500); font-size: var(--font-size-xs);">Responsável</span>
-              <div style="font-weight: 600; font-size: var(--font-size-md);">
-                <?= htmlspecialchars($pendencia['responsavel_nome'] ?? 'Não atribuído') ?>
-              </div>
-            </div>
-
-            <div style="margin-bottom: var(--spacing-4);">
-              <span class="form-label" style="color: var(--color-slate-500); font-size: var(--font-size-xs);">Prioridade</span>
+            <div class="record-card-heading">
+              <span class="record-card-icon" aria-hidden="true">≡</span>
               <div>
+                <span class="record-card-kicker">Detalhes da atividade</span>
+                <h2 class="card-title">Descrição da tarefa</h2>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="task-description-text">
+                <?= !empty($pendencia['descricao']) ? htmlspecialchars($pendencia['descricao']) : '<em>Sem descrição detalhada registrada.</em>' ?>
+            </div>
+          </div>
+      </section>
+
+      <aside class="card record-card execution-summary-card">
+          <div class="card-header">
+            <div class="record-card-heading">
+              <span class="record-card-icon" aria-hidden="true">✓</span>
+              <div>
+                <span class="record-card-kicker">Resumo operacional</span>
+                <h2 class="card-title">Execução</h2>
+              </div>
+            </div>
+          </div>
+          <div class="card-body execution-list">
+            <div class="execution-item">
+              <span class="execution-item-icon" aria-hidden="true">R</span>
+              <div>
+                <span class="execution-label">Responsável</span>
+                <strong><?= htmlspecialchars($pendencia['responsavel_nome'] ?? 'Não atribuído') ?></strong>
+              </div>
+            </div>
+
+            <div class="execution-item">
+              <span class="execution-item-icon" aria-hidden="true">!</span>
+              <div>
+                <span class="execution-label">Prioridade</span>
                 <span class="badge badge-prioridade-<?= strtolower($pendencia['prioridade'] ?? 'media') ?>">
                   <?= ucfirst(htmlspecialchars($pendencia['prioridade'] ?? 'Média')) ?>
                 </span>
               </div>
             </div>
 
-            <div style="margin-bottom: var(--spacing-4);">
-              <span class="form-label" style="color: var(--color-slate-500); font-size: var(--font-size-xs);">Prazo Limite</span>
+            <div class="execution-item <?= $isAtrasada ? 'is-overdue' : '' ?>">
+              <span class="execution-item-icon" aria-hidden="true">◷</span>
               <div>
-                <?= htmlspecialchars($pendencia['prazo_formatado'] ?? $pendencia['prazo'] ?? '-') ?>
+                <span class="execution-label">Prazo limite</span>
+                <strong><?= htmlspecialchars($pendencia['prazo_formatado'] ?? $pendencia['prazo'] ?? '-') ?></strong>
                 <?php if ($isAtrasada): ?>
-                  <div style="margin-top: 4px;">
-                    <span class="badge-prazo-violado">Prazo violado</span>
-                  </div>
+                  <span class="execution-warning">Atenção necessária</span>
                 <?php endif; ?>
               </div>
             </div>
 
             <?php if (!empty($pendencia['concluido_em'])): ?>
-              <div style="padding-top: var(--spacing-3); border-top: 1px solid var(--color-slate-200);">
-                <span class="form-label" style="color: var(--color-slate-500); font-size: var(--font-size-xs);">Concluída em</span>
-                <div style="color: var(--color-success); font-weight: 600;">
-                  <?= htmlspecialchars($pendencia['concluido_em_formatada'] ?? $pendencia['concluido_em']) ?>
+              <div class="execution-item is-completed">
+                <span class="execution-item-icon" aria-hidden="true">✓</span>
+                <div>
+                  <span class="execution-label">Concluída em</span>
+                  <strong><?= htmlspecialchars($pendencia['concluido_em_formatada'] ?? $pendencia['concluido_em']) ?></strong>
                 </div>
               </div>
             <?php endif; ?>
           </div>
-        </div>
-      </div>
+      </aside>
     </div>
+
+    <section class="card record-card history-card">
+      <div class="card-header history-card-header">
+        <div class="record-card-heading">
+          <span class="record-card-icon" aria-hidden="true">↻</span>
+          <div>
+            <span class="record-card-kicker">Rastreabilidade</span>
+            <h2 class="card-title">Histórico do atendimento</h2>
+          </div>
+        </div>
+        <span class="history-count"><?= count($historicoAtendimento ?? []) ?> registro(s)</span>
+      </div>
+      <div class="card-body">
+        <?php if (empty($historicoAtendimento)): ?>
+          <div class="history-empty">
+            <span aria-hidden="true">○</span>
+            <p>Nenhuma alteração registrada até o momento.</p>
+          </div>
+        <?php else: ?>
+          <ol class="record-timeline">
+            <?php foreach ($historicoAtendimento as $historyItem): ?>
+              <?php
+                $historyDetails = json_decode((string)($historyItem['detalhes_json'] ?? ''), true);
+                $historyDetails = is_array($historyDetails) ? $historyDetails : [];
+                $historyAction = match ((string)($historyItem['acao'] ?? '')) {
+                    'criar' => 'Pendência criada',
+                    'atualizar' => 'Dados atualizados',
+                    'concluir' => 'Pendência concluída',
+                    default => ucfirst(str_replace('_', ' ', (string)($historyItem['acao'] ?? 'Alteração registrada'))),
+                };
+                $historyStatus = $historyDetails['status'] ?? null;
+                if (is_string($historyStatus) && function_exists('opDisplay')) {
+                    $historyStatus = opDisplay($historyStatus);
+                }
+              ?>
+              <li class="timeline-event">
+                <span class="timeline-dot" aria-hidden="true"></span>
+                <div class="timeline-content">
+                  <div class="timeline-main">
+                    <strong><?= htmlspecialchars($historyAction) ?></strong>
+                    <span>por <?= htmlspecialchars($historyItem['usuario_nome'] ?? 'Sistema') ?></span>
+                  </div>
+                  <time datetime="<?= htmlspecialchars($historyItem['criado_em'] ?? '') ?>">
+                    <?= !empty($historyItem['criado_em']) ? date('d/m/Y · H:i', strtotime($historyItem['criado_em'])) : '-' ?>
+                  </time>
+                  <?php if ($historyStatus): ?>
+                    <div class="timeline-status"><?= renderStatusBadge((string)$historyStatus) ?></div>
+                  <?php endif; ?>
+                </div>
+              </li>
+            <?php endforeach; ?>
+          </ol>
+        <?php endif; ?>
+      </div>
+    </section>
 
 <?php require __DIR__ . '/../layouts/footer.php'; ?>

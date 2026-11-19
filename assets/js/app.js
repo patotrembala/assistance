@@ -44,7 +44,7 @@ function initThemeToggle() {
 }
 
 /**
- * Experiência de conversa do Ethan: atalhos, envio com Enter e rolagem.
+ * Experiência de conversa do Pajezinho: atalhos, envio com Enter e rolagem.
  */
 function initEthanChat() {
   const form = document.querySelector('[data-ai-chat-form]');

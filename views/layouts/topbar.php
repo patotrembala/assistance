@@ -3,7 +3,7 @@
  * Assistance - Topbar
  * @var array $currentUser
  */
-$currentUser = $currentUser ?? ($_SESSION['user'] ?? ['nome' => 'Usuário Sistema', 'email' => 'admin@ethan.local', 'perfil' => 'admin']);
+$currentUser = $currentUser ?? ($_SESSION['user'] ?? ['nome' => 'Usuário Sistema', 'email' => 'admin@example.com', 'perfil' => 'admin']);
 $initials = strtoupper(substr($currentUser['nome'] ?? 'U', 0, 2));
 $baseUrl = $baseUrl ?? '';
 ?>

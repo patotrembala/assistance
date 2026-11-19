@@ -41,6 +41,7 @@ function opRows(string $module): array {
     $rows=opQuery($sql,$params);
     foreach($rows as &$r) {
        $r['status']=opDisplay($r['status']);
+       if (!empty($r['criado_em'])) $r['criado_em'] = databaseDateToLocal($r['criado_em']);
        $deadline=$r['prazo_previsto']??$r['prazo']??null;
        $r['prazo_formatado']=opDate($deadline);
        $r['prazo_violado']=$deadline && strtotime($deadline)<time() && !opClosed($r['status']);
@@ -48,12 +49,16 @@ function opRows(string $module): array {
        $r['aberto_em_formatada']=opDate($r['aberto_em']??null);
        $r['criado_em_formatado']=opDate($r['criado_em']??null);
        $r['conclusao_em_formatada']=opDate($r['conclusao_em']??null);
+       $r['concluido_em_formatada']=opDate($r['concluido_em']??null);
     } unset($r); return $rows;
 }
 function opFilter(array $rows): array {
-    global $isAdmin;
+    global $isAdmin, $currentUser;
     $query=mb_strtolower(trim((string)($_GET['busca']??'')));
-    return array_values(array_filter($rows, function($r)use($query,$isAdmin){
+    return array_values(array_filter($rows, function($r)use($query,$isAdmin,$currentUser){
+      $fila = (string)($_GET['fila'] ?? '');
+      if ($fila === 'meus' && (int)($r['tecnico_id'] ?? $r['responsavel_id'] ?? 0) !== (int)$currentUser['id']) return false;
+      if ($fila === 'disponiveis' && (!array_key_exists('tecnico_id', $r) || $r['tecnico_id'] !== null || opClosed($r['status']))) return false;
       if($query!=='' && !str_contains(mb_strtolower(implode(' ',array_filter($r,'is_scalar'))),$query)) return false;
       if(!empty($_GET['status']) && opStatus($r['status'])!==opStatus((string)$_GET['status'])) return false;
       if(!empty($_GET['prioridade']) && ($r['prioridade']??'')!==$_GET['prioridade']) return false;
@@ -205,7 +210,10 @@ if($requestUri==='/dados-operacionais/backup'){
 if($requestUri==='/' || $requestUri==='/dashboard'){
     $tecnicoFiltroId=$isAdmin?(string)($_GET['tecnico_id']??''):(string)$currentUser['id'];
     $sets=['ordens'=>opRows('ordens'),'chamados'=>opRows('chamados'),'pendencias'=>opRows('pendencias')];
+    $resumoTecnico = ['ordens_disponiveis' => count(array_filter($sets['ordens'], static fn(array $row): bool => $row['tecnico_id'] === null && !opClosed($row['status']))), 'ordens_abertas' => 0, 'pendencias_abertas' => 0];
     if($tecnicoFiltroId!=='')foreach($sets as &$rows)$rows=array_values(array_filter($rows,fn($r)=>(int)($r['tecnico_id']??$r['responsavel_id']??0)===(int)$tecnicoFiltroId)); unset($rows);
+    $resumoTecnico['ordens_abertas'] = count(array_filter($sets['ordens'], static fn(array $row): bool => !opClosed($row['status'])));
+    $resumoTecnico['pendencias_abertas'] = count(array_filter($sets['pendencias'], static fn(array $row): bool => !opClosed($row['status'])));
     $metricas=['servicos_concluidos'=>0,'chamados_resolvidos'=>0,'pendencias_concluidas'=>0,'tarefas_atrasadas'=>0,'tempo_medio'=>'—','conclusao_no_prazo'=>'—'];$atividadesRecentes=[];$durations=[];$completedWithDeadline=0;$onTime=0;
     foreach($sets as $mod=>$rows)foreach($rows as $r){
       $status=opStatus($r['status']);$done=in_array($status,['Concluida','Concluido'],true);
@@ -242,7 +250,7 @@ if($requestUri==='/' || $requestUri==='/dashboard'){
     $graficoChamados['variacao']=$ultimo-$primeiro;
     $graficoChamados['tendencia']=$ultimo>$primeiro?'alta':($ultimo<$primeiro?'queda':'estavel');
 
-    opView('dashboard/index',compact('metricas','tecnicos','atividadesRecentes','tecnicoFiltroId','graficoChamados'));
+    opView('dashboard/index',compact('metricas','tecnicos','atividadesRecentes','tecnicoFiltroId','graficoChamados','resumoTecnico'));
 }
 if(preg_match('#^/(ordens|chamados|pendencias|tipos-servico)(?:/(nova|novo|salvar|\d+)(?:/(editar|atualizar|assumir|reabrir|atualizar-status|concluir|imprimir|excluir))?)?$#',$requestUri,$match)){
     $module=$match[1];$segment=$match[2]??'';$action=$match[3]??'';$id=ctype_digit($segment)?(int)$segment:null;
@@ -253,12 +261,16 @@ if(preg_match('#^/(ordens|chamados|pendencias|tipos-servico)(?:/(nova|novo|salva
     $tables=['ordens'=>'ordens_servico','chamados'=>'chamados_online','pendencias'=>'pendencias','tipos-servico'=>'tipos_servico'];
     $clients=$clienteRepository->all($currentUser);$types=opQuery('SELECT * FROM tipos_servico ORDER BY nome');
     $data=['clientes'=>$clients,'tiposServico'=>$types,'tecnicos'=>$tecnicos,'usuarios'=>$tecnicos,'errors'=>[]];
+    if ($module === 'ordens') {
+      $currentType = (int)($old['tipo_servico_id'] ?? 0);
+      $data['tiposServico'] = array_values(array_filter($types, static fn(array $type): bool => !empty($type['ativo']) || ($currentType > 0 && (int)$type['id'] === $currentType)));
+    }
     $var=match($module){'ordens'=>'ordem','chamados'=>'chamado','pendencias'=>'pendencia',default=>'tipoServico'};
     if($_SERVER['REQUEST_METHOD']==='POST'){
       verifyCsrf();
       try {
         opBackup();$pdo->beginTransaction();
-        if($id){$old=opRecord($module,$id,true);opAccess($module,$old,true);}
+        if($id){$old=opRecord($module,$id,true);opAccess($module,$old,$action!=='assumir');}
         if($id && $action==='excluir'){
           if(!$isAdmin){
             $target=opDeletionTarget($entity);
@@ -322,6 +334,8 @@ if(preg_match('#^/(ordens|chamados|pendencias|tipos-servico)(?:/(nova|novo|salva
     else{$record=null;foreach(opRows($module)as$r)if((int)$r['id']===$id){$record=$r;break;}if(!$record)opFail(404,'Registro não encontrado.');}
     $data[$var]=$record;
     $data['historicoAtendimento']=opQuery('SELECT a.acao,a.detalhes_json,a.criado_em,u.nome usuario_nome FROM audit_logs a LEFT JOIN usuarios u ON u.id=a.usuario_id WHERE a.entidade=? AND a.registro_id=? ORDER BY a.id DESC LIMIT 100',[$entity,$id]);
+    foreach ($data['historicoAtendimento'] as &$event) $event['criado_em'] = databaseDateToLocal($event['criado_em']);
+    unset($event);
     if($action==='imprimir'&&$module==='ordens')opView('ordens/print',$data);
     opView($folder.'/'.(($action==='editar'||$module==='chamados'||$module==='tipos-servico')?'form':'show'),$data);
 }

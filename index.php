@@ -65,6 +65,19 @@ $aiFile = __DIR__ . '/config/ai.local.php';
 $aiConfig = is_file($aiFile) ? require $aiFile : [];
 $chatGptOauthFile = __DIR__ . '/config/chatgpt.oauth.local.json';
 $pdo = database();
+// Datas automáticas do MySQL usam o fuso da hospedagem; entradas operacionais usam São Paulo.
+function databaseDateToLocal(?string $value): ?string {
+    if (!$value) return $value;
+    global $pdo;
+    static $databaseZone = null;
+    if ($databaseZone === null) {
+        $offset = (int)$pdo->query('SELECT TIMESTAMPDIFF(SECOND, UTC_TIMESTAMP(), NOW())')->fetchColumn();
+        $sign = $offset < 0 ? '-' : '+';
+        $absolute = abs($offset);
+        $databaseZone = new DateTimeZone(sprintf('%s%02d:%02d', $sign, intdiv($absolute, 3600), intdiv($absolute % 3600, 60)));
+    }
+    return (new DateTimeImmutable($value, $databaseZone))->setTimezone(new DateTimeZone('America/Sao_Paulo'))->format('Y-m-d H:i:s');
+}
 $securityService = new SecurityService($pdo, (string)($securityConfig['key'] ?? $authConfig['admin_email'] ?? 'ethan-assistant'));
 $privacyRequestService = new PrivacyRequestService($pdo);
 $ethanAiService = new EthanAiService($aiConfig, null, $chatGptOauthFile);
@@ -444,9 +457,12 @@ function consumeAiQuota(): void
 }
 
 $aiUsesChatGptPlan = $ethanAiService->usesChatGptPlan();
-// O Ethan IA é uma ferramenta operacional para administradores e técnicos.
+// O Pajezinho IA é uma ferramenta operacional para administradores e técnicos.
 // As credenciais permanecem exclusivamente no servidor e nunca são enviadas
 // ao navegador do usuário autenticado.
+
+// Compatibilidade com links antigos da voz personalizada, agora removida.
+if (in_array($requestUri, ['/assistance-ia/voz', '/ethan-ia/voz'], true)) require __DIR__ . '/voice.php';
 
 // Operações autenticadas com persistência real no banco de dados.
 try {
@@ -501,9 +517,9 @@ $mockTiposServico = [
 ];
 
 $mockTecnicos = [
-    ['id' => 1, 'nome' => 'Cauã Meira', 'email' => 'caua@ethan.local', 'perfil' => 'admin', 'ativo' => 1],
-    ['id' => 2, 'nome' => 'Lucas Oliveira', 'email' => 'lucas@ethan.local', 'perfil' => 'tecnico', 'ativo' => 1],
-    ['id' => 3, 'nome' => 'Beatriz Santos', 'email' => 'beatriz@ethan.local', 'perfil' => 'tecnico', 'ativo' => 1]
+    ['id' => 1, 'nome' => 'Cauã Meira', 'email' => 'caua@example.com', 'perfil' => 'admin', 'ativo' => 1],
+    ['id' => 2, 'nome' => 'Lucas Oliveira', 'email' => 'lucas@example.com', 'perfil' => 'tecnico', 'ativo' => 1],
+    ['id' => 3, 'nome' => 'Beatriz Santos', 'email' => 'beatriz@example.com', 'perfil' => 'tecnico', 'ativo' => 1]
 ];
 
 $mockOrdens = [
@@ -782,7 +798,7 @@ switch (true) {
         } catch (EthanAiException $exception) {
             $aiError = $exception->getMessage();
         } catch (Throwable $exception) {
-            error_log('Falha inesperada no Ethan IA: ' . $exception->getMessage());
+            error_log('Falha inesperada no Pajezinho IA: ' . $exception->getMessage());
             $aiError = 'Não foi possível concluir a análise. Tente novamente.';
         }
         require __DIR__ . '/views/ai/index.php';
@@ -805,7 +821,7 @@ switch (true) {
         } catch (EthanAiException $exception) {
             $aiError = $exception->getMessage();
         } catch (Throwable $exception) {
-            error_log('Falha inesperada no Ethan IA: ' . $exception->getMessage());
+            error_log('Falha inesperada no Pajezinho IA: ' . $exception->getMessage());
             $aiError = 'Não foi possível gerar o relatório. Tente novamente.';
         }
         require __DIR__ . '/views/ai/index.php';
@@ -828,7 +844,7 @@ switch (true) {
         } catch (EthanAiException $exception) {
             $aiError = $exception->getMessage();
         } catch (Throwable $exception) {
-            error_log('Falha inesperada no Ethan IA: ' . $exception->getMessage());
+            error_log('Falha inesperada no Pajezinho IA: ' . $exception->getMessage());
             $aiError = 'Não foi possível responder agora. Tente novamente.';
         }
         if ($aiError) {
@@ -841,7 +857,7 @@ switch (true) {
     case $requestUri === '/assistance-ia/chat/limpar' && $_SERVER['REQUEST_METHOD'] === 'POST':
         verifyCsrf();
         unset($_SESSION['ethan_ai_chat']);
-        redirectWithFlash('/assistance-ia', 'success', 'Conversa com o Ethan limpa.');
+        redirectWithFlash('/assistance-ia', 'success', 'Conversa com o Pajezinho limpa.');
 
     case $requestUri === '/chamados':
         $chamados = $mockChamados;
@@ -908,12 +924,16 @@ switch (true) {
     case $requestUri === '/recuperacoes-senha':
         requireAdmin($isAdmin);
         $passwordResetRequests = $passwordResetService->pendingRequests();
+        foreach ($passwordResetRequests as &$request) $request['solicitado_em'] = databaseDateToLocal($request['solicitado_em']);
+        unset($request);
         require __DIR__ . '/views/password_resets/index.php';
         break;
 
     case $requestUri === '/auditoria':
         requireAdmin($isAdmin);
         $auditLogs = $securityService->recentAuditLogs();
+        foreach ($auditLogs as &$auditLog) $auditLog['criado_em'] = databaseDateToLocal($auditLog['criado_em']);
+        unset($auditLog);
         require __DIR__ . '/views/audit/index.php';
         break;
 

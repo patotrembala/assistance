@@ -1,6 +1,6 @@
 # Assistance
 
-Sistema web em PHP e MySQL para organizar o fluxo de trabalho de técnicos de informática. O projeto possui autenticação, perfis de administrador e técnico, dashboard operacional e CRUD de clientes. As demais áreas estão estruturadas para a continuidade do desenvolvimento.
+Sistema web em PHP e MySQL para organizar o fluxo de trabalho de técnicos de informática. O projeto reúne autenticação, perfis de administrador e técnico, gestão de clientes, ordens de serviço, chamados, pendências e indicadores operacionais.
 
 ## Recursos atuais
 
@@ -9,7 +9,7 @@ Sistema web em PHP e MySQL para organizar o fluxo de trabalho de técnicos de in
 - Controle de sessão e separação de permissões.
 - MFA por e-mail para administradores, bloqueio contra força bruta e expiração por inatividade.
 - Trilha de auditoria e acesso de técnicos limitado aos clientes atribuídos.
-- Ethan IA para análise de chamados, relatórios técnicos e dúvidas de suporte.
+- Pajezinho IA para análise de chamados, relatórios técnicos e dúvidas de suporte.
 - Aviso de privacidade, canal do titular e painel administrativo de solicitações LGPD.
 - Dashboard para acompanhamento operacional.
 - Cadastro, visualização, edição e exclusão de clientes.
@@ -31,8 +31,8 @@ Sistema web em PHP e MySQL para organizar o fluxo de trabalho de técnicos de in
 Abra o PowerShell e execute:
 
 ```powershell
-git clone -b ethanassistant https://github.com/patotrembala/ethan-assistant.git
-cd ethan-assistant
+git clone -b ethanassistant https://github.com/patotrembala/assistance.git
+cd assistance
 Copy-Item config/database.example.php config/database.local.php
 Copy-Item config/auth.example.php config/auth.local.php
 Copy-Item config/mail.example.php config/mail.local.php
@@ -46,12 +46,12 @@ Os arquivos terminados em `.local.php` são privados e não são enviados ao Git
 - `config/auth.local.php`: nome e e-mail autorizados para criar o primeiro administrador.
 - `config/mail.local.php`: servidor SMTP utilizado para enviar links de recuperação de senha.
 - `config/security.local.php`: chave aleatória privada usada para pseudonimizar origens nos registros de segurança.
-- `config/ai.local.php`: chave e modelo usados pelo Ethan IA; mantenha a chave apenas no ambiente configurado.
+- `config/ai.local.php`: chave e modelo usados pelo Pajezinho IA; mantenha a chave apenas no ambiente configurado.
 
-Como alternativa à cobrança separada da API, a demonstração escolar aceita a autorização oficial da conta ChatGPT do administrador. Veja o procedimento e as limitações em [`docs/ETHAN_IA.md`](docs/ETHAN_IA.md). As credenciais ficam em `config/chatgpt.oauth.local.json`, nunca no Git ou no navegador. Administradores e técnicos autenticados podem usar o Ethan IA, sujeitos ao limite de uso configurado pelo sistema.
+Como alternativa à cobrança separada da API, a demonstração escolar aceita a autorização oficial da conta ChatGPT do administrador. Veja o procedimento e as limitações em [`docs/ETHAN_IA.md`](docs/ETHAN_IA.md). As credenciais ficam em `config/chatgpt.oauth.local.json`, nunca no Git ou no navegador. Administradores e técnicos autenticados podem usar o Pajezinho IA, sujeitos ao limite de uso configurado pelo sistema.
 
 Na hospedagem gratuita da InfinityFree, a função `mail()` não está disponível. Configure um SMTP externo. Para Gmail, ative a verificação em duas etapas e utilize uma senha de aplicativo; nunca coloque a senha normal da conta no arquivo.
-O remetente oficial do projeto é `Assistance <ethanassistant1@gmail.com>`; a senha de aplicativo deve existir apenas no `config/mail.local.php` de cada ambiente.
+O remetente oficial do projeto é `Assistance <seu-email@example.com>`; a senha de aplicativo deve existir apenas no `config/mail.local.php` de cada ambiente.
 
 ## Criar o banco local
 

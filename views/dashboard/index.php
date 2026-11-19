@@ -12,6 +12,7 @@ $currentRoute = 'dashboard';
 $baseUrl = $baseUrl ?? '';
 $currentUser = $currentUser ?? ($_SESSION['user'] ?? ['nome' => 'Administrador', 'perfil' => 'admin']);
 $isAdmin = ($currentUser['perfil'] ?? '') === 'admin';
+if (!$isAdmin) $pageTitle = 'Meu painel - Assistance';
 
 // Valores padrão caso ainda não venham do controller do Codex
 $metricas = $metricas ?? [
@@ -70,8 +71,8 @@ require __DIR__ . '/../layouts/sidebar.php';
 
     <div class="page-header">
       <div class="page-title-wrap">
-        <h1>Painel de Operações</h1>
-        <p class="page-subtitle">Acompanhamento de fluxo de ordens de serviço, atendimentos e indicadores operacionais</p>
+        <h1><?= $isAdmin ? 'Painel de Operações' : 'Meu dia de trabalho' ?></h1>
+        <p class="page-subtitle"><?php if ($isAdmin): ?>Acompanhamento de fluxo de ordens de serviço, atendimentos e indicadores operacionais<?php else: ?>Olá, <?= htmlspecialchars(explode(' ', trim((string)($currentUser['nome'] ?? 'Técnico')))[0], ENT_QUOTES, 'UTF-8') ?>. Veja suas prioridades e escolha o próximo atendimento.<?php endif; ?></p>
       </div>
       <div class="page-actions">
         <a href="<?= $baseUrl ?>/ordens/nova" class="btn btn-primary">
@@ -108,6 +109,28 @@ require __DIR__ . '/../layouts/sidebar.php';
       </div>
     <?php endif; ?>
 
+    <?php if (!$isAdmin): ?>
+      <section class="grid-cards-3" aria-label="Sua fila de trabalho" style="margin-bottom:var(--spacing-5);">
+        <a class="metric-card" href="<?= $baseUrl ?>/ordens?fila=meus&amp;prazo=abertos" style="text-decoration:none;color:inherit;">
+          <div class="metric-header"><span class="metric-label">Minhas OS em aberto</span><span aria-hidden="true">→</span></div>
+          <div class="metric-value"><?= (int)($resumoTecnico['ordens_abertas'] ?? 0) ?></div>
+          <div class="metric-subtext">Continuar meus atendimentos</div>
+        </a>
+        <a class="metric-card" href="<?= $baseUrl ?>/ordens?fila=disponiveis" style="text-decoration:none;color:inherit;">
+          <div class="metric-header"><span class="metric-label">Disponíveis para assumir</span><span aria-hidden="true">→</span></div>
+          <div class="metric-value"><?= (int)($resumoTecnico['ordens_disponiveis'] ?? 0) ?></div>
+          <div class="metric-subtext">Escolher minha próxima OS</div>
+        </a>
+        <a class="metric-card" href="<?= $baseUrl ?>/pendencias?prazo=abertos" style="text-decoration:none;color:inherit;">
+          <div class="metric-header"><span class="metric-label">Minhas pendências</span><span aria-hidden="true">→</span></div>
+          <div class="metric-value"><?= (int)($resumoTecnico['pendencias_abertas'] ?? 0) ?></div>
+          <div class="metric-subtext">Organizar as tarefas da bancada</div>
+        </a>
+      </section>
+      <details class="card" style="margin-bottom:var(--spacing-5);">
+        <summary style="padding:var(--spacing-4);cursor:pointer;font-weight:600;">Meu histórico e desempenho</summary>
+        <div class="card-body">
+    <?php endif; ?>
     <!-- Indicadores Principais (RF16) -->
     <div class="grid-cards-3">
       <div class="metric-card">
@@ -174,11 +197,12 @@ require __DIR__ . '/../layouts/sidebar.php';
       </div>
     </div>
 
+    <?php if (!$isAdmin): ?></div></details><?php endif; ?>
     <!-- Tabela de Atividades Prioritárias e Pendentes -->
     <div class="card">
       <div class="card-header">
-        <h2 class="card-title">Atividades em Aberto e Atenção a Prazos</h2>
-        <a href="<?= $baseUrl ?>/ordens" class="btn btn-outline btn-sm">Ver todas as ordens →</a>
+        <h2 class="card-title"><?= $isAdmin ? 'Atividades em Aberto e Atenção a Prazos' : 'Meus próximos atendimentos' ?></h2>
+        <a href="<?= $baseUrl ?>/ordens" class="btn btn-outline btn-sm"><?= $isAdmin ? 'Ver todas as ordens →' : 'Abrir minha fila →' ?></a>
       </div>
       <div class="table-responsive">
         <table class="table-corporate">
@@ -252,7 +276,7 @@ require __DIR__ . '/../layouts/sidebar.php';
         <div>
           <span class="performance-chart-eyebrow">Evolução operacional</span>
           <h2 id="performance-chart-title" class="card-title">Chamados resolvidos — últimos 7 dias</h2>
-          <p>Quantidade de chamados concluídos por dia<?= !empty($tecnicoFiltroId) ? ' para o técnico selecionado' : ' pela equipe' ?>.</p>
+          <p>Quantidade de chamados concluídos por dia<?= !$isAdmin ? ' por você' : (!empty($tecnicoFiltroId) ? ' para o técnico selecionado' : ' pela equipe') ?>.</p>
         </div>
         <div class="performance-trend" aria-label="<?= htmlspecialchars($chartTrendText) ?>">
           <span class="performance-trend-icon" aria-hidden="true"><?= $chartTrend === 'alta' ? '↗' : ($chartTrend === 'queda' ? '↘' : '→') ?></span>
